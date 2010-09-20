@@ -18,14 +18,18 @@ body {
   font-weight: normal;
 }
 
-#mainBlock {
+.centered {
   width: 810px;
-  height: 450px;
   border-radius: 2px;
   padding: 5px;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 10px;
   background-color: #A0B0BF;
+}
+
+#mainBlock {
+  height: 450px;
 }
 
 #inputBlock {
@@ -43,6 +47,7 @@ body {
   overflow: auto;
   margin-right: 15px;
   border: 1px solid black;
+  cursor: pointer;
 }
 
 #videoBlock {
@@ -56,6 +61,11 @@ body {
   margin-left: 180px;
   margin-top: 5px;
   font-size: 36px;
+}
+
+#footerBlock {
+  text-align: center;
+  font-size: smaller;
 }
   </style>
   <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
@@ -97,18 +107,8 @@ function onUrlEnter() {
       document.getElementById('statusBlock').innerHTML = '';
 
       // Create table of songs in playlist
-      var playlistTable = document.getElementById('playlistTable');
       for (var i = 0; i < playlist.length; i++) {
-        var song = playlist[i];
-        var songRow = document.createElement('tr');
-        songRow.id = 'song' + i;
-        var artistCol = document.createElement('td');
-        artistCol.innerHTML = song.artist;
-        var titleCol = document.createElement('td');
-        titleCol.innerHTML = song.title;
-        songRow.appendChild(artistCol);
-        songRow.appendChild(titleCol);
-        playlistTable.appendChild(songRow);
+        addSongRow(i);
       }
       document.getElementById('playlistBlock').style.display = 'block';
       document.getElementById('controlsBlock').style.display = 'block';
@@ -117,6 +117,24 @@ function onUrlEnter() {
       alert('Sorry, we couldn\'t load that playlist for some reason.');
     }
   });
+}
+
+function addSongRow(songNum) {
+  var playlistTable = document.getElementById('playlistTable');
+  var song = playlist[songNum];
+  var songRow = document.createElement('tr');
+  songRow.id = 'song' + songNum;
+  var artistCol = document.createElement('td');
+  artistCol.innerHTML = song.artist;
+  var titleCol = document.createElement('td');
+  titleCol.innerHTML = song.title;
+  songRow.appendChild(artistCol);
+  songRow.appendChild(titleCol);
+  songRow.onclick = function() {
+    currentSong = songNum;
+    playNext();
+  };
+  playlistTable.appendChild(songRow);
 }
 
 // Plays the next song and queues the one after that.
@@ -196,7 +214,7 @@ function onYouTubePlayerStateChange(newState) {
   </script>
   </head>
 <body>
-<div id="mainBlock">
+<div class="centered" id="mainBlock">
 <div id="inputBlock">
 <label>Enter URL to Rage playlist:
   <input id="urlInput" type="text"
@@ -219,6 +237,19 @@ function onYouTubePlayerStateChange(newState) {
 <div id="controlsBlock" style="display:none">
 <button onclick="currentSong++; playNext()">NEXT</button>
 </div>
+
+</div>
+
+<div class="centered" id="footerBlock">
+Powered by <a href="http://open.dapper.net">Dapper</a>, <a
+  href="http://code.google.com/apis/youtube/player_parameters.html">Youtube
+  Player API</a> and <a
+  href="http://code.google.com/apis/youtube/2.0/developers_guide_jsonc.html">Youtube
+  Data API JSON-C</a>.
+  <br><br>
+<a
+  href="http://code.google.com/p/pamelafox-samplecode/issues/entry?template=RageTube%20Issue">Report
+  a Bug / Request a Feature</a>
 
 </div>
 
