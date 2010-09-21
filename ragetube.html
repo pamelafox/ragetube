@@ -76,6 +76,7 @@ var currentSong = 0;
 var waitingForSong = false;
 var youtubePlayer;
 
+
 // Loads a new playlist based on the URL entered
 // and starts playing it.
 function onUrlEnter() {
@@ -85,13 +86,16 @@ function onUrlEnter() {
   waitingForSong = false;
   document.getElementById('playlistTable').innerHTML = '';
 
+  var url = document.getElementById('urlInput').value;
+  window.location.hash = '?url=' + url;
+
   // Use Dapper to scrape the page and get JSON of song info
   document.getElementById('statusBlock').innerHTML = 'Loading...';
   var dappUrl = 'http://open.dapper.net/transform.php';
   var params = {
     'dappName': 'RagePlaylist',
     'transformer': 'JSON',
-    'applyToUrl': document.getElementById('urlInput').value
+    'applyToUrl': url
   }
   JSONP.get(dappUrl, params, 'extraArg_callbackFunctionWrapper', function(json){
     var status = json.dapper.status;
@@ -249,9 +253,26 @@ Powered by <a href="http://open.dapper.net">Dapper</a>, <a
   <br><br>
 <a
   href="http://code.google.com/p/pamelafox-samplecode/issues/entry?template=RageTube%20Issue">Report
-  a Bug / Request a Feature</a>
+an Issue</a>
+|
+<a
+  href="http://code.google.com/p/pamelafox-samplecode/issues/list?can=2&q=project-RageTube">See
+  all Issues</a>
 
 </div>
 
+<script>
+function getHashParam(name) {
+  var regexS = "[\\?&]" + name + "=([^&#]*)";
+  var regex = new RegExp(regexS);
+  var results = regex.exec(window.location.hash);
+  return (results === null ? "" : results[1]);
+}
+
+var url = getHashParam('url');
+if (url) {
+  document.getElementById('urlInput').value = url;
+}
+</script>
  </body>
 </html>
