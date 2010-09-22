@@ -106,11 +106,18 @@ function onUrlEnter() {
 
   // Use Dapper to scrape the page and get JSON of song info
   document.getElementById('statusBlock').innerHTML = 'Loading...';
+
+  if (playlistUrl.indexOf('playlist/') > -1) {
+    dappName = 'RageOldPlaylists';
+  } else {
+    dappName = 'RagePlaylist';
+  }
+
   var dappUrl = 'http://open.dapper.net/transform.php';
   var params = {
-    'dappName': 'RagePlaylist',
+    'dappName': dappName,
     'transformer': 'JSON',
-    'applyToUrl': url
+    'applyToUrl': playlistUrl
   }
   JSONP.get(dappUrl, params, 'extraArg_callbackFunctionWrapper', function(json){
     var status = json.dapper.status;
@@ -119,17 +126,26 @@ function onUrlEnter() {
       var groups = json.groups.songinfo;
       for (var i = 0; i < groups.length; i++) {
         var song = {};
-        song.artist = groups[i].artist[0].value.split(' - ')[0];
-        song.title = groups[i].song[0].value;
+        if (json.dapper.dappName == 'RageOldPlaylists') {
+          var allinfo = groups[i].allinfo[0].value;
+          var splitinfo = allinfo.split(' - ');
+          if (splitinfo.length == 1) continue;
+          // Remove numbers before song titles for countdowns
+          song.title = splitinfo[0].replace(/^[0-9]*\./, '');
+          // Remove labels after titles (without removing featuring)
+          song.artist = splitinfo[1].replace(/[A-Z][a-z]+/, '');
+        } else {
+          song.artist = groups[i].artist[0].value.split(' - ')[0];
+          song.title = groups[i].song[0].value;
+        }
         song.id = playlistUrl + '-' + i;
         playlist.push(song);
       }
-      document.getElementById('statusBlock').innerHTML = '';
-
       // Create table of songs in playlist
       for (var i = 0; i < playlist.length; i++) {
         addSongRow(i);
       }
+      document.getElementById('statusBlock').innerHTML = '';
       document.getElementById('playlistBlock').style.display = 'block';
       document.getElementById('controlsBlock').style.display = 'block';
       playNext();
