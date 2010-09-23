@@ -138,7 +138,7 @@ function onUrlEnter() {
           song.artist = groups[i].artist[0].value.split(' - ')[0];
           song.title = groups[i].song[0].value;
         }
-        song.id = playlistUrl + '-' + i;
+        song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '');
         playlist.push(song);
       }
       // Create table of songs in playlist
@@ -165,6 +165,7 @@ function addSongRow(songNum) {
   var titleCol = document.createElement('td');
   titleCol.innerHTML = song.title;
   var likerCol = document.createElement('td');
+  likerCol.style.width = '30px';
   likerCol.appendChild(LIKER.createLikerMini(song.id));
 
   songRow.appendChild(artistCol);
