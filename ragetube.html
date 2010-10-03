@@ -107,7 +107,9 @@ function onUrlEnter() {
   // Use Dapper to scrape the page and get JSON of song info
   document.getElementById('statusBlock').innerHTML = 'Loading...';
 
-  if (playlistUrl.indexOf('playlist/') > -1) {
+  if (playlistUrl.indexOf('amazon.com') > -1) {
+    dappName = 'AmazonSoundtracksPlaylist';
+  } else if (playlistUrl.indexOf('playlist/') > -1) {
     dappName = 'RageOldPlaylists';
   } else {
     dappName = 'RagePlaylist';
@@ -126,21 +128,31 @@ function onUrlEnter() {
       var groups = json.groups.songinfo;
       for (var i = 0; i < groups.length; i++) {
         var song = {};
-        if (json.dapper.dappName == 'RageOldPlaylists') {
-          var allinfo = groups[i].allinfo[0].value;
-          var splitinfo = allinfo.split(' - ');
-          if (splitinfo.length == 1) continue;
-          // Remove numbers before song titles for countdowns
-          song.title = splitinfo[0].replace(/^[0-9]*\./, '');
-          // Remove labels after titles (without removing featuring)
-          song.artist = splitinfo[1].replace(/[A-Z][a-z]+/, '').replace(/EMI|BMG/, '');
-        } else {
-          song.artist = groups[i].artist[0].value.split(' - ')[0];
-          song.title = groups[i].song[0].value;
-        }
-        song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '');
-        playlist.push(song);
-      }
+        switch (json.dapper.dappName)
+        {
+          case 'RageOldPlaylists':
+            var allinfo = groups[i].allinfo[0].value;
+            var splitinfo = allinfo.split(' - ');
+            if (splitinfo.length == 1) continue;
+            // Remove numbers before song titles for countdowns
+            song.title = splitinfo[0].replace(/^[0-9]*\./, '');
+            // Remove labels after titles (without removing featuring)
+            song.artist = splitinfo[1].replace(/[A-Z][a-z]+/, '').replace(/EMI|BMG/, '');
+            break;
+          case 'RagePlaylist':
+            song.artist = groups[i].artist[0].value.split(' - ')[0];
+            song.title = groups[i].song[0].value;
+            break;
+          case 'AmazonSoundtracksPlaylist':
+            song.artist = groups[i].artist[0].value.split(' - ')[0];
+            song.title = groups[i].title[0].value;
+            break;
+       }
+
+       song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '');
+       playlist.push(song);
+     }
+
       // Create table of songs in playlist
       for (var i = 0; i < playlist.length; i++) {
         addSongRow(i);
