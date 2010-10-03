@@ -144,7 +144,7 @@ function onUrlEnter() {
             song.title = groups[i].song[0].value;
             break;
           case 'AmazonSoundtracksPlaylist':
-            song.artist = groups[i].artist[0].value.split(' - ')[0];
+            song.artist = groups[i].artist[0].value.replace('OST', '');
             song.title = groups[i].title[0].value;
             break;
        }
