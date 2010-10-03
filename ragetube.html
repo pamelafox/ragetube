@@ -248,8 +248,12 @@ function searchForSong(songNum) {
     'q': query
   }
   JSONP.get(searchUrl, params, null, function(json) {
-    song.results = json.data.items;
-    song.youtubeId = json.data.items[0].id;
+    song.results = json.data.items || [];
+    if (song.results.length == 0) {
+      song.youtubeId = 'r_J6hCCQ_ng';
+    } else {
+      song.youtubeId = json.data.items[0].id;
+    }
     // If the player is waiting for this song info, play it now
     if (waitingForSong) {
       playNext();
