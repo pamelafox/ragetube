@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>RageTube</title>
   <link href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold&subset=latin" rel="stylesheet" type="text/css" >
+  <script src="http://www.google.com/jsapi?key=AIzaSyA5m1Nc8ws2BbmPRwKu5gFradvD_hgq6G0" type="text/javascript"></script>
   <style type="text/css">
 body {
   font-family: 'Droid Sans', sans-serif;
@@ -117,6 +118,28 @@ body {
   border-color: red;
 }
 
+.dialog {
+  padding: 5px;
+  position: absolute;
+  z-index: 10;
+  top: 100px;
+  background-color: white;
+  border: 3px solid #1240AB;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.gsc-clear-button {
+  display: none;
+}
+
+.gsc-resultsHeader {
+  display: none;
+}
+.gs-visibleUrl {
+  display: none;
+}
+
 button {
   font-family: 'Droid Sans', sans-serif;
   background: #F6F6F6;
@@ -151,12 +174,54 @@ button:hover, button:focus {
   <script src="jsonp.js"></script>
   <script src="liker.js"></script>
   <script>
+google.load('search', '1');
+
 var playlistUrl = null;
 var playlist = [];
 var currentSong = 0;
 var waitingForSong = false;
 var youtubePlayer;
 
+function onSearch() {
+  var dialog = document.createElement('div');
+  dialog.className = 'dialog';
+  var pageWidth = document.documentElement.offsetWidth;
+  var dialogWidth = pageWidth - 200;
+  dialog.style.width = dialogWidth + 'px';
+  dialog.style.height = (document.getElementById('aside').offsetHeight - 100) + 'px';
+  dialog.style.left = (pageWidth - dialogWidth)/2 + 'px';
+
+  var closer = document.createElement('div');
+  closer.style.cssFloat = 'right';
+  var closeButton = document.createElement('button');
+  closeButton.innerHTML = 'CLOSE';
+  closeButton.onclick = function() {
+    document.body.removeChild(dialog);
+  };
+  closer.appendChild(closeButton);
+  dialog.appendChild(closer);
+  var searcher = document.createElement('div');
+  dialog.appendChild(searcher);
+
+  var results = document.createElement('div');
+  dialog.appendChild(results);
+  document.body.appendChild(dialog);
+
+  var searchControl = new google.search.SearchControl();
+  var webSearch = new google.search.WebSearch();
+  webSearch.setSiteRestriction('008586021709508157834:us2cayaulsk', 'Playlists');
+  var options = new google.search.SearcherOptions();
+  options.setRoot(results);
+  options.setExpandMode(google.search.SearchControl.EXPAND_MODE_OPEN);
+  searchControl.addSearcher(webSearch, options);
+  searchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+  searchControl.setOnKeepCallback(this, function(result) {
+    document.getElementById('urlInput').value = result.unescapedUrl;
+    document.body.removeChild(dialog);
+    onUrlEnter();
+  }, 'LOAD PLAYLIST');
+  searchControl.draw(searcher);
+}
 
 // Loads a new playlist based on the URL entered
 // and starts playing it.
@@ -270,7 +335,7 @@ function playNext() {
     // If we haven't embedded the youtube player SWF yet, do it now
     // Otherwise, use the JS API to load the video
     if (!youtubePlayer) {
-      var params = {allowScriptAccess: 'always', allowFullScreen: 'true'};
+      var params = {allowScriptAccess: 'always', allowFullScreen: 'true', wmode: 'transparent'};
       var atts = {id: 'youtubeplayer'};
       var width = document.getElementById('main').offsetWidth;
       var height = document.getElementById('main').offsetHeight - 100;
@@ -358,6 +423,9 @@ function onYouTubePlayerStateChange(newState) {
   value="http://www.abc.net.au/rage/archive/s3014896.htm">
   <button onclick="onUrlEnter()">LOAD</button>
   <span id="statusBlock"></span>
+  or
+  <button onclick="onSearch()">SEARCH PLAYLISTS</button>
+
   </label>
 
  </div>
@@ -403,7 +471,6 @@ if (url) {
   document.getElementById('urlInput').value = url;
   onUrlEnter();
 }
-
 
 var offset = 180;
 if (window.innerHeight) {
