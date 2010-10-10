@@ -1,15 +1,96 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>RageTube</title>
+ <head>
+  <meta charset="utf-8">
+  <title>RageTube</title>
+  <link href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold&subset=latin" rel="stylesheet" type="text/css" >
   <style type="text/css">
 body {
-  font-family: Arial, sans serif;
+  font-family: 'Droid Sans', sans-serif;
   background-color: black;
+}
+
+#container
+{
+  margin: 0 auto;
+  width: 98%;
+  height: 98%;
+}
+
+#header
+{
+  margin-top: 10px;
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+  -moz-border-radius-topleft: 1em;
+  -moz-border-radius-topright: 1em;
+  background: #1240AB;
+  color: white;
+  padding: 20px;
+}
+
+#content
+{
+  background-color: white;
+}
+
+#aside
+{
+  background-color: white;
+  float: left;
+  overflow-y: auto;
+  overflow-x: none;
+  width: 26%;
+}
+
+#aside tr {
+  cursor: pointer;
+}
+
+#main {
+  background-color: white;
+  float: left;
+  width: 74%;
+}
+
+#controls {
+  height: 100%;
+  padding: 10px;
+  margin: auto;
+  text-align: center;
+}
+
+#controls button {
+  font-size: larger;
+}
+
+#liker {
+  margin-top: 7px;
+  margin-bottom: 7px;
+  font-size: larger;
+}
+
+#footer
+{
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+  -moz-border-radius-bottomleft: 1em;
+  -moz-border-radius-bottomright: 1em;
+  clear: left;
+  background: #06266F;
+  text-align: right;
+  padding: 20px;
+  color: #4671D5;
+  font-size: smaller;
+}
+
+#footer a {
+  color: #4671D5;
 }
 
 .selected {
   border:1px solid black;
+  border-radius: .3em;
   font-weight: bold;
 }
 
@@ -18,68 +99,53 @@ body {
   font-weight: normal;
 }
 
-.centered {
-  width: 810px;
-  border-radius: 2px;
-  padding: 5px;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 10px;
-  background-color: #A0B0BF;
-}
-
-#mainBlock {
-  height: 460px;
-}
-
-#inputBlock {
-  margin-bottom: 10px;
-}
-
 #urlInput {
-  width: 300px;
-}
-
-#playlistBlock {
-  width:350px;
-  height: 405px;
-  float:left;
-  overflow: auto;
-  margin-right: 15px;
-  border: 1px solid black;
-  cursor: pointer;
-}
-
-#videoBlock {
-  width: 450px;
-  float:left;
-}
-
-#controlsBlock {
-  text-align: center;
-  float: left;
-  margin-left: 180px;
-  margin-top: 5px;
-}
-
-#controlsBlock button {
-  font-size: larger;
-}
-
-#footerBlock {
-  text-align: center;
-  font-size: smaller;
+  width: 400px;
+  font-family: 'Droid Sans', sans-serif;
 }
 
 .Yay {
   color: green;
+  border-color: green;
 }
 .Meh {
   color: orange;
+  border-color: orange;
 }
 .Nay {
   color: red;
+  border-color: red;
 }
+
+button {
+  font-family: 'Droid Sans', sans-serif;
+  background: #F6F6F6;
+  background-image: -moz-linear-gradient(top, white,#EFEFEF);
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(white), to(#EFEFEF));
+  border: 1px solid #CCC;
+  border-radius: 3px 3px;
+  -moz-border-radius: 3px 3px;
+  color: black;
+  cursor: pointer;
+  height: 2.0833em;
+  overflow: visible;
+  padding: 0px 0.5em;
+  vertical-align: middle;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+button:hover, button:focus {
+  border-color:#999;
+  background:#f3f3f3;
+  background-image:-moz-linear-gradient(top,#ffffff,#ebebeb);
+  background-image:-webkit-gradient(linear,left top,left bottom,from(#ffffff),to(#ebebeb));
+  outline:0;
+  -moz-box-shadow:0 0 3px #999;
+  -webkit-box-shadow:0 0 3px #999;
+  box-shadow:0 0 3px #999;
+}
+
   </style>
   <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
   <script src="jsonp.js"></script>
@@ -158,8 +224,8 @@ function onUrlEnter() {
         addSongRow(i);
       }
       document.getElementById('statusBlock').innerHTML = '';
-      document.getElementById('playlistBlock').style.display = 'block';
-      document.getElementById('controlsBlock').style.display = 'block';
+      //document.getElementById('playlistBlock').style.display = 'block';
+      document.getElementById('controls').style.display = 'block';
       playNext();
     } else {
       alert('Sorry, we couldn\'t load that playlist for some reason.');
@@ -206,15 +272,19 @@ function playNext() {
     if (!youtubePlayer) {
       var params = {allowScriptAccess: 'always', allowFullScreen: 'true'};
       var atts = {id: 'youtubeplayer'};
+      var width = document.getElementById('main').offsetWidth;
+      var height = document.getElementById('main').offsetHeight - 100;
       swfobject.embedSWF('http://www.youtube.com/v/' + song.youtubeId +
         '?autoplay=1&showsearch=0&rel=0&fs=1&enablejsapi=1&playerapiid=ytplayer',
-        'videoBlock', '425', '356', '8', null, null, params, atts);
+        'videoplayer', '90%', '80%', '8', null, null, params, atts);
+      document.getElementById('controls').style.width = (width-10) + 'px';
+
     } else {
       youtubePlayer.loadVideoById(song.youtubeId);
     }
 
-    document.getElementById('likerBlock').innerHTML = '';
-    document.getElementById('likerBlock').appendChild(LIKER.createLiker(song.id));
+    document.getElementById('liker').innerHTML = '';
+    document.getElementById('liker').appendChild(LIKER.createLiker(song.id));
 
     // Toggle CSS so current song shows as playing
     for (var i = 0; i < playlist.length; i++) {
@@ -223,7 +293,7 @@ function playNext() {
     var songBlock = document.getElementById('song' + currentSong);
     songBlock.className = 'selected';
 
-    document.getElementById('playlistBlock').scrollTop = songBlock.offsetTop;
+    document.getElementById('aside').scrollTop = songBlock.offsetTop;
   } else {
     waitingForSong = true;
     searchForSong(currentSong);
@@ -278,49 +348,46 @@ function onYouTubePlayerStateChange(newState) {
 }
   </script>
   </head>
-<body>
-<div class="centered" id="mainBlock">
-<div id="inputBlock">
-<label>Enter URL to Rage playlist:
+  <body>
+
+<div id="container">
+ <div id="header">
+
+  <label>Enter URL to Rage playlist:
   <input id="urlInput" type="text"
   value="http://www.abc.net.au/rage/archive/s3014896.htm">
-  <button onclick="onUrlEnter()">Load</button>
+  <button onclick="onUrlEnter()">LOAD</button>
   <span id="statusBlock"></span>
-</label>
-</div>
+  </label>
 
-<div id="playlistBlock" style="display:none">
-  <table>
-    <tbody id="playlistTable">
-    </tbody>
- </table>
-</div>
+ </div>
+   <div id="aside">
+    <table>
+     <tbody id="playlistTable"></tbody>
+    </table>
+   </div>
 
-<div id="videoBlock">
-</div>
+   <div id="main">
 
-<div id="controlsBlock" style="display:none">
-  <div id="likerBlock" style="margin-bottom: 7px"></div>
-  <button onclick="currentSong++; playNext()">NEXT</button>
-</div>
+    <div id="controls" style="display:none">
+      <div id="videoplayer"></div>
+      <div id="liker"></div>
+      <button onclick="currentSong++; playNext()">NEXT</button>
+    </div>
 
-</div>
+   </div>
 
-<div class="centered" id="footerBlock">
-Powered by <a href="http://open.dapper.net">Dapper</a>, <a
-  href="http://code.google.com/apis/youtube/player_parameters.html">Youtube
-  Player API</a> and <a
-  href="http://code.google.com/apis/youtube/2.0/developers_guide_jsonc.html">Youtube
-  Data API JSON-C</a>.
-  <br><br>
-<a
-  href="http://code.google.com/p/pamelafox-samplecode/issues/entry?template=RageTube%20Issue">Report
-an Issue</a>
-|
-<a
-  href="http://code.google.com/p/pamelafox-samplecode/issues/list?can=2&q=project-RageTube">See
-  all Issues</a>
+  <div id="footer">
 
+   Powered by <a href="http://open.dapper.net">Dapper</a>,
+   <a href="http://code.google.com/apis/youtube/player_parameters.html">Youtube Player API</a> and
+   <a href="http://code.google.com/apis/youtube/2.0/developers_guide_jsonc.html">Youtube Data API JSON-C</a>.
+   &nbsp;
+   <a href="http://code.google.com/p/pamelafox-samplecode/issues/entry?template=RageTube%20Issue">Report
+an issue</a> or
+   <a href="http://code.google.com/p/pamelafox-samplecode/issues/list?can=2&q=project-RageTube">see
+  all issues</a>
+ </div>
 </div>
 
 <script>
@@ -336,6 +403,29 @@ if (url) {
   document.getElementById('urlInput').value = url;
   onUrlEnter();
 }
+
+
+var offset = 180;
+if (window.innerHeight) {
+  var height = window.innerHeight - offset;
+} else {
+  var height = document.documentElement.offsetHeight - offset;
+}
+document.getElementById('aside').style.height = height + 'px';
+document.getElementById('main').style.height = height + 'px';
+</script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-964209-9']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
 </script>
  </body>
 </html>

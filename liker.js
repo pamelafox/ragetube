@@ -49,10 +49,19 @@ var LIKER = function() {
     }
   }
 
+  function supportsLocalStorage() {
+    try {
+      return 'localStorage' in window && window['localStorage'] !== null;
+    } catch (e) {
+      return false;
+    }
+  }
+
   return {
     // Create an interactive liker
     createLiker: function(id) {
       var div = document.createElement('div');
+      if (!supportsLocalStorage()) return div;
       div.setAttribute(DATA_LIKERID, id);
       div.setAttribute(DATA_LIKERTYPE, 'full');
       var values = ['Yay', 'Meh', 'Nay'];
@@ -65,6 +74,7 @@ var LIKER = function() {
     // Create a read-only element that reflects like state
     createLikerMini: function(id) {
       var span = document.createElement('span');
+      if (!supportsLocalStorage()) return span;
       span.setAttribute(DATA_LIKERID, id);
       span.setAttribute(DATA_LIKERTYPE, 'mini');
       var value = localStorage[id];
