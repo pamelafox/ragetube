@@ -3,7 +3,7 @@
  <head>
   <meta charset="utf-8">
   <title>RageTube</title>
-  <link href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold&subset=latin" rel="stylesheet" type="text/css" >
+  <link href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold&subset=latin" rel="stylesheet" type="text/css">
   <script src="http://www.google.com/jsapi?key=AIzaSyA5m1Nc8ws2BbmPRwKu5gFradvD_hgq6G0" type="text/javascript"></script>
   <style type="text/css">
 body {
@@ -170,11 +170,12 @@ button:hover, button:focus {
 }
 
   </style>
-  <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
   <script src="jsonp.js"></script>
   <script src="liker.js"></script>
+  <script src="lscache.js"></script>
   <script>
 google.load('search', '1');
+google.load('swfobject', '2.2');
 
 var playlistUrl = null;
 var playlist = [];
@@ -226,6 +227,7 @@ function onSearch() {
 // Loads a new playlist based on the URL entered
 // and starts playing it.
 function onUrlEnter() {
+
   // Reset data and UI
   playlist.length = 0;
   currentSong = 0;
@@ -235,67 +237,77 @@ function onUrlEnter() {
   playlistUrl = document.getElementById('urlInput').value;
   window.location.hash = '?url=' + playlistUrl;
 
-  // Use Dapper to scrape the page and get JSON of song info
   document.getElementById('statusBlock').innerHTML = 'Loading...';
 
-  if (playlistUrl.indexOf('amazon.com') > -1) {
-    dappName = 'AmazonSoundtracksPlaylist';
-  } else if (playlistUrl.indexOf('playlist/') > -1) {
-    dappName = 'RageOldPlaylists';
+  var json = lscache.get(playlistUrl);
+  if (json) {
+    processJSON(json);
   } else {
-    dappName = 'RagePlaylist';
+    fetchJSON(playlistUrl);
   }
 
-  var dappUrl = 'http://open.dapper.net/transform.php';
-  var params = {
-    'dappName': dappName,
-    'transformer': 'JSON',
-    'applyToUrl': playlistUrl
-  }
-  JSONP.get(dappUrl, params, 'extraArg_callbackFunctionWrapper', function(json){
-    var status = json.dapper.status;
-    if (status == 'OK') {
-      // Populate playlist object based on what the Dapp found in the page
-      var groups = json.groups.songinfo;
-      for (var i = 0; i < groups.length; i++) {
-        var song = {};
-        switch (json.dapper.dappName)
-        {
-          case 'RageOldPlaylists':
-            var allinfo = groups[i].allinfo[0].value;
-            var splitinfo = allinfo.split(' - ');
-            if (splitinfo.length == 1) continue;
-            // Remove numbers before song titles for countdowns
-            song.title = splitinfo[0].replace(/^[0-9]*\./, '');
-            // Remove labels after titles (without removing featuring)
-            song.artist = splitinfo[1].replace(/[A-Z][a-z]+/, '').replace(/EMI|BMG/, '');
-            break;
-          case 'RagePlaylist':
-            song.artist = groups[i].artist[0].value.split(' - ')[0];
-            song.title = groups[i].song[0].value;
-            break;
-          case 'AmazonSoundtracksPlaylist':
-            song.artist = groups[i].artist[0].value.replace('OST', '');
-            song.title = groups[i].title[0].value;
-            break;
-       }
-
-       song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '');
-       playlist.push(song);
-     }
-
-      // Create table of songs in playlist
-      for (var i = 0; i < playlist.length; i++) {
-        addSongRow(i);
-      }
-      document.getElementById('statusBlock').innerHTML = '';
-      //document.getElementById('playlistBlock').style.display = 'block';
-      document.getElementById('controls').style.display = 'block';
-      playNext();
+  function fetchJSON() {
+    if (playlistUrl.indexOf('amazon.com') > -1) {
+      dappName = 'AmazonSoundtracksPlaylist';
+    } else if (playlistUrl.indexOf('playlist/') > -1) {
+      dappName = 'RageOldPlaylists';
     } else {
-      alert('Sorry, we couldn\'t load that playlist for some reason.');
+      dappName = 'RagePlaylist';
     }
-  });
+
+    var dappUrl = 'http://open.dapper.net/transform.php';
+    var params = {
+      'dappName': dappName,
+      'transformer': 'JSON',
+      'applyToUrl': playlistUrl
+    }
+    JSONP.get(dappUrl, params, 'extraArg_callbackFunctionWrapper', function(json){
+      var status = json.dapper.status;
+      if (status == 'OK') {
+        processJSON(json);
+        lscache.set(playlistUrl, json, 60*24);
+      } else {
+        alert('Sorry, we couldn\'t load that playlist for some reason.');
+      }
+    });
+  }
+
+  function processJSON(json) {
+    var groups = json.groups.songinfo;
+    for (var i = 0; i < groups.length; i++) {
+      var song = {};
+      switch (json.dapper.dappName) {
+       case 'RageOldPlaylists':
+         var allinfo = groups[i].allinfo[0].value;
+         var splitinfo = allinfo.split(' - ');
+         if (splitinfo.length == 1) continue;
+         // Remove numbers before song titles for countdowns
+         song.title = splitinfo[0].replace(/^[0-9]*\./, '');
+         // Remove labels after titles (without removing featuring)
+         song.artist = splitinfo[1].replace(/[A-Z][a-z]+/, '').replace(/EMI|BMG/, '');
+         break;
+       case 'RagePlaylist':
+         song.artist = groups[i].artist[0].value.split(' - ')[0];
+         song.title = groups[i].song[0].value;
+         break;
+       case 'AmazonSoundtracksPlaylist':
+         song.artist = groups[i].artist[0].value.replace('OST', '');
+         song.title = groups[i].title[0].value;
+         break;
+      }
+
+      song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '');
+      playlist.push(song);
+    }
+
+    // Create table of songs in playlist
+    for (var i = 0; i < playlist.length; i++) {
+      addSongRow(i);
+    }
+    document.getElementById('statusBlock').innerHTML = '';
+    document.getElementById('controls').style.display = 'block';
+    playNext();
+  }
 }
 
 function addSongRow(songNum) {
@@ -372,17 +384,31 @@ function playNext() {
 
 // Searches for the song, and plays it if needed
 function searchForSong(songNum) {
-  // Use the Youtube data API to find the song
   var song = playlist[songNum];
   var query = song.artist + ' ' + song.title;
-  var searchUrl = 'http://gdata.youtube.com/feeds/api/videos';
-  var params = {
-    'v': '2',
-    'alt': 'jsonc',
-    'format': '5',
-    'q': query
+
+  var json = lscache.get('youtube' + query);
+  if (json) {
+    processJSON(json);
+  } else {
+    fetchJSON(query);
   }
-  JSONP.get(searchUrl, params, null, function(json) {
+
+  function fetchJSON() {
+    var searchUrl = 'http://gdata.youtube.com/feeds/api/videos';
+    var params = {
+      'v': '2',
+      'alt': 'jsonc',
+      'format': '5',
+      'q': query
+    }
+    JSONP.get(searchUrl, params, null, function(json) {
+      processJSON(json);
+      lscache.set('youtube' + query, json, 60*10);
+    });
+  }
+
+  function processJSON(json) {
     song.results = json.data.items || [];
     if (song.results.length == 0) {
       song.youtubeId = 'r_J6hCCQ_ng';
@@ -393,7 +419,7 @@ function searchForSong(songNum) {
     if (waitingForSong) {
       playNext();
     }
-  });
+  }
 }
 
 // Called when the embedded player is available to be scripted
