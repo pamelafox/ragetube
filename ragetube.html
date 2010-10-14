@@ -239,7 +239,8 @@ function onUrlEnter() {
 
   document.getElementById('statusBlock').innerHTML = 'Loading...';
 
-  var json = lscache.get(playlistUrl);
+  var key = 'dapper:' + playlistUrl;
+  var json = lscache.get(key);
   if (json) {
     processJSON(json);
   } else {
@@ -265,7 +266,7 @@ function onUrlEnter() {
       var status = json.dapper.status;
       if (status == 'OK') {
         processJSON(json);
-        lscache.set(playlistUrl, json, 60*24);
+        lscache.set(key, json, 60*24);
       } else {
         alert('Sorry, we couldn\'t load that playlist for some reason.');
       }
@@ -387,7 +388,8 @@ function searchForSong(songNum) {
   var song = playlist[songNum];
   var query = song.artist + ' ' + song.title;
 
-  var json = lscache.get('youtube' + query);
+  var key = 'youtube:' + query;
+  var json = lscache.get(key);
   if (json) {
     processJSON(json);
   } else {
@@ -404,7 +406,7 @@ function searchForSong(songNum) {
     }
     JSONP.get(searchUrl, params, null, function(json) {
       processJSON(json);
-      lscache.set('youtube' + query, json, 60*10);
+      lscache.set(key, json, 60*10);
     });
   }
 
