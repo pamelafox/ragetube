@@ -453,6 +453,7 @@ notify = noop;
 
 if (window.webkitNotifications) {
   var focused = true;
+  var notification;
   
   window.addEventListener('blur', function() {
     focused = false;
@@ -465,15 +466,24 @@ if (window.webkitNotifications) {
   });
   
   var notify_ = function(song) {
-    if (window.notification) {
+    if (notification) {
       notification.cancel();
     }
-    notification = webkitNotifications.createNotification(song.thumbnail || 'logo.png', song.artist, song.title);
     if (!focused) {
-      notification.show();
-      setTimeout(function() {
-        notification.cancel();
-      }, 10000);
+      try {
+          notification = webkitNotifications.createNotification(song.thumbnail || 'logo.png', song.artist, song.title);
+          notification.show();
+          notification.addEventListener('click', function() {
+            // TODO: somehow get focus?
+            this.cancel(0);
+          });
+          setTimeout(function() {
+            notification.cancel();
+          }, 10000);
+        }
+        catch(e) {
+          window.console && console.log && console.log(e);
+        }
     }
   };
   
