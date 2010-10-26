@@ -475,7 +475,7 @@ if (window.webkitNotifications) {
           notification.show();
           notification.addEventListener('click', function() {
             // TODO: somehow get focus?
-            this.cancel(0);
+            this.cancel();
           });
           setTimeout(function() {
             notification.cancel();
