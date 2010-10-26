@@ -169,6 +169,11 @@ button:hover, button:focus {
   box-shadow:0 0 3px #999;
 }
 
+button#notifications {
+  float: right;
+}
+
+
   </style>
   <script src="jsonp.js"></script>
   <script src="liker.js"></script>
@@ -372,6 +377,8 @@ function playNext() {
     songBlock.className = 'selected';
 
     document.getElementById('aside').scrollTop = songBlock.offsetTop;
+    
+    notify(song);
   } else {
     waitingForSong = true;
     searchForSong(currentSong);
@@ -416,6 +423,7 @@ function searchForSong(songNum) {
       song.youtubeId = 'r_J6hCCQ_ng';
     } else {
       song.youtubeId = json.data.items[0].id;
+      song.thumbnail = json.data.items[0].thumbnail.sqDefault;
     }
     // If the player is waiting for this song info, play it now
     if (waitingForSong) {
@@ -437,6 +445,59 @@ function onYouTubePlayerStateChange(newState) {
   if (newState == 0) {
     currentSong++;
     playNext();
+  }
+}
+
+function noop() {}
+notify = noop;
+
+if (window.webkitNotifications) {
+  var focused = true;
+  
+  window.addEventListener('blur', function() {
+    focused = false;
+  });
+  window.addEventListener('focus', function() {
+    focused = true;
+    if (window.notification) {
+      notification.cancel();
+    }
+  });
+  
+  var notify_ = function(song) {
+    if (window.notification) {
+      notification.cancel();
+    }
+    notification = webkitNotifications.createNotification(song.thumbnail || 'logo.png', song.artist, song.title);
+    if (!focused) {
+      notification.show();
+      setTimeout(function() {
+        notification.cancel();
+      }, 10000);
+    }
+  };
+  
+  if (webkitNotifications.checkPermission() == 0) {
+    // we already have permission
+    notify = notify_;
+  }
+  else {
+    google.setOnLoadCallback(function() {
+      // add a button to request permission
+      // TODO: dropdown "settings" button
+      var requestButton = document.createElement("button");
+      requestButton.id = "notifications";
+      requestButton.innerHTML = "Use desktop notifications";
+      document.getElementById("header").appendChild(requestButton);
+    
+      requestButton.addEventListener('click', function() {
+        webkitNotifications.requestPermission(function() {
+          // we got permission
+          notify = notify_;
+          document.getElementById("header").removeChild(requestButton);
+        });
+      });
+    });
   }
 }
   </script>
