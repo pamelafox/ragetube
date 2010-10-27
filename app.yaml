@@ -1,0 +1,17 @@
+application: ragetube
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+
+- url: /img
+  static_dir: img 
+
+- url: /js
+  static_dir: js 
+
+- url: /
+  static_files: ragetube.html
+  upload: ragetube.html
+

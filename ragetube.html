@@ -175,9 +175,9 @@ button#notifications {
 
 
   </style>
-  <script src="jsonp.js"></script>
-  <script src="liker.js"></script>
-  <script src="lscache.js"></script>
+  <script src="js/jsonp.js"></script>
+  <script src="js/liker.js"></script>
+  <script src="js/lscache.js"></script>
   <script>
 google.load('search', '1');
 google.load('swfobject', '2.2');
@@ -471,7 +471,7 @@ if (window.webkitNotifications) {
     }
     if (!focused) {
       try {
-          notification = webkitNotifications.createNotification(song.thumbnail || 'logo.png', song.artist, song.title);
+          notification = webkitNotifications.createNotification(song.thumbnail || 'img/logo.png', song.artist, song.title);
           notification.show();
           notification.addEventListener('click', function() {
             // TODO: somehow get focus?
