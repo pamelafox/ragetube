@@ -8,7 +8,7 @@
   <style type="text/css">
 body {
   font-family: 'Droid Sans', sans-serif;
-  background-color: black;
+  background-color: #8de077;
 }
 
 #container
@@ -25,9 +25,10 @@ body {
   border-top-right-radius: 1em;
   -moz-border-radius-topleft: 1em;
   -moz-border-radius-topright: 1em;
-  background: #1240AB;
-  color: white;
+  background: black;
+  color: red;
   padding: 20px;
+  font-weight: bold;
 }
 
 #content
@@ -78,15 +79,15 @@ body {
   -moz-border-radius-bottomleft: 1em;
   -moz-border-radius-bottomright: 1em;
   clear: left;
-  background: #06266F;
-  text-align: right;
-  padding: 20px;
-  color: #4671D5;
+  background: black;
+  color: red;
   font-size: smaller;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 #footer a {
-  color: #4671D5;
+  color: red;
 }
 
 .selected {
@@ -142,13 +143,12 @@ body {
 
 button {
   font-family: 'Droid Sans', sans-serif;
-  background: #F6F6F6;
-  background-image: -moz-linear-gradient(top, white,#EFEFEF);
-  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(white), to(#EFEFEF));
-  border: 1px solid #CCC;
+  background: red;
   border-radius: 3px 3px;
   -moz-border-radius: 3px 3px;
-  color: black;
+  border-width: 0px;
+  color: white;
+  font-weight: bold;
   cursor: pointer;
   height: 2.0833em;
   overflow: visible;
@@ -159,10 +159,9 @@ button {
 }
 
 button:hover, button:focus {
-  border-color:#999;
-  background:#f3f3f3;
-  background-image:-moz-linear-gradient(top,#ffffff,#ebebeb);
-  background-image:-webkit-gradient(linear,left top,left bottom,from(#ffffff),to(#ebebeb));
+  background: maroon;
+  background-image:-moz-linear-gradient(top, red, maroon);
+  background-image:-webkit-gradient(linear,left top,left bottom,from(red),to(maroon));
   outline:0;
   -moz-box-shadow:0 0 3px #999;
   -webkit-box-shadow:0 0 3px #999;
@@ -498,7 +497,7 @@ if (window.webkitNotifications) {
       var requestButton = document.createElement("button");
       requestButton.id = "notifications";
       requestButton.innerHTML = "Use desktop notifications";
-      document.getElementById("header").appendChild(requestButton);
+      document.getElementById("neader").appendChild(requestButton);
     
       requestButton.addEventListener('click', function() {
         webkitNotifications.requestPermission(function() {
@@ -519,7 +518,7 @@ if (window.webkitNotifications) {
 
   <label>Enter URL to Rage playlist:
   <input id="urlInput" type="text"
-  value="http://www.abc.net.au/rage/archive/s3014896.htm">
+  value="http://www.abc.net.au/rage/archive/s3032936.htm">
   <button onclick="onUrlEnter()">LOAD</button>
   <span id="statusBlock"></span>
   or
@@ -546,6 +545,9 @@ if (window.webkitNotifications) {
 
   <div id="footer">
 
+  <img src="/img/ragetube.png">
+
+  <div style="padding-top: 30px; float:right">
    Powered by <a href="http://open.dapper.net">Dapper</a>,
    <a href="http://code.google.com/apis/youtube/player_parameters.html">Youtube Player API</a> and
    <a href="http://code.google.com/apis/youtube/2.0/developers_guide_jsonc.html">Youtube Data API JSON-C</a>.
@@ -554,6 +556,7 @@ if (window.webkitNotifications) {
 an issue</a> or
    <a href="http://code.google.com/p/pamelafox-samplecode/issues/list?can=2&q=project-RageTube">see
   all issues</a>
+  </div>
  </div>
 </div>
 
