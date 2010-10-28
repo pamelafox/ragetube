@@ -497,7 +497,7 @@ if (window.webkitNotifications) {
       var requestButton = document.createElement("button");
       requestButton.id = "notifications";
       requestButton.innerHTML = "Use desktop notifications";
-      document.getElementById("neader").appendChild(requestButton);
+      document.getElementById("header").appendChild(requestButton);
     
       requestButton.addEventListener('click', function() {
         webkitNotifications.requestPermission(function() {
