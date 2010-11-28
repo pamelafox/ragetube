@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}RageTube: Global Stats{% endblock %}
+{% block head %}
+<style type="text/css">
+#stats {
+  text-align:center;
+  padding-top: 10px;
+}
+</style>
+<script type="text/javascript">
+google.load('visualization', '1', {packages: ['corechart']});
+</script>
+{% endblock %}
+
+{% block header %}
+Songs &amp; Stats
+{% endblock %}
+
+{% block middle %}
+<div id="stats">
+
+</div>
+
+<div style="clear:both"></div>
+
+{% endblock %}
+
+{% block bodyend %}
+<script type="text/javascript">
+
+var url = '/action/global/get_top_songs';
+AJAX.post(url, null, function(response){
+  var topStats = eval( '(' + response + ')');
+  for (statTitle in topStats) {
+    var song = topStats[statTitle];
+    var div = document.createElement('div');
+    div.style.cssFloat = 'left';
+    document.getElementById('stats').appendChild(div);
+    div.innerHTML += '<b>' + statTitle + '</b><br>' + song.artist + '<br>' + song.title;
+    
+    var chartDiv = document.createElement('div');
+    div.appendChild(chartDiv);
+    
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Opinion');
+    data.addColumn('number', 'Voters');
+    data.addRows([
+      ['Yay', song.opinioncount_yay],
+      ['Meh', song.opinioncount_meh],
+      ['Nay', song.opinioncount_nay]
+    ]);
+    
+    barsVisualization = new google.visualization.ColumnChart(chartDiv);
+    barsVisualization.draw(data, {width: 300, height: 200, legend: 'none'});
+    
+    
+    
+  }
+});
+</script>
+{% endblock %}

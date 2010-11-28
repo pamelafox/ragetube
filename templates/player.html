@@ -1,41 +1,7 @@
-<!DOCTYPE html>
-<html>
- <head>
-  <meta charset="utf-8">
-  <title>RageTube</title>
-  <link href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold&subset=latin" rel="stylesheet" type="text/css">
-  <script src="http://www.google.com/jsapi?key=AIzaSyA5m1Nc8ws2BbmPRwKu5gFradvD_hgq6G0" type="text/javascript"></script>
+{% extends "base.html" %}
+{% block title %}RageTube{% endblock %}
+{% block head %}
   <style type="text/css">
-body {
-  font-family: 'Droid Sans', sans-serif;
-  background-color: #8de077;
-}
-
-#container
-{
-  margin: 0 auto;
-  width: 98%;
-  height: 98%;
-}
-
-#header
-{
-  margin-top: 10px;
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
-  -moz-border-radius-topleft: 1em;
-  -moz-border-radius-topright: 1em;
-  background: black;
-  color: red;
-  padding: 20px;
-  font-weight: bold;
-}
-
-#content
-{
-  background-color: white;
-}
-
 #aside
 {
   background-color: white;
@@ -57,37 +23,23 @@ body {
 
 #controls {
   height: 100%;
-  padding: 10px;
-  margin: auto;
-  text-align: center;
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding-right: 10px;
+  text-align: left;
+  float: left;
 }
 
 #controls button {
   font-size: larger;
 }
 
-#liker {
-  margin-top: 7px;
-  margin-bottom: 7px;
+#stats {
+  float: right;
   font-size: larger;
-}
-
-#footer
-{
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
-  -moz-border-radius-bottomleft: 1em;
-  -moz-border-radius-bottomright: 1em;
-  clear: left;
-  background: black;
-  color: red;
-  font-size: smaller;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-#footer a {
-  color: red;
+  text-align: right;
+  margin-right: 1%;
 }
 
 .selected {
@@ -174,7 +126,6 @@ button#notifications {
 
 
   </style>
-  <script src="js/jsonp.js"></script>
   <script src="js/liker.js"></script>
   <script src="js/lscache.js"></script>
   <script>
@@ -183,9 +134,11 @@ google.load('swfobject', '2.2');
 
 var playlistUrl = null;
 var playlist = [];
+var songs = {};
 var currentSong = 0;
 var waitingForSong = false;
 var youtubePlayer;
+var loggedIn = {{loggedin}};
 
 function onSearch() {
   var dialog = document.createElement('div');
@@ -234,6 +187,7 @@ function onUrlEnter() {
 
   // Reset data and UI
   playlist.length = 0;
+  songs = {};
   currentSong = 0;
   waitingForSong = false;
   document.getElementById('playlistTable').innerHTML = '';
@@ -302,21 +256,44 @@ function onUrlEnter() {
       }
 
       song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '');
-      playlist.push(song);
+      songs[song.id] = song;
+      playlist.push(song.id);
     }
 
-    // Create table of songs in playlist
-    for (var i = 0; i < playlist.length; i++) {
-      addSongRow(i);
+    
+    if (loggedIn) {
+      var url = '/action/viewer/get_song_stats';
+      var data = '';
+      for (var i = 0; i < playlist.length; i++) {
+        data += 'key_name=' + playlist[i] + '&';
+      }
+      AJAX.post(url, data, function(response){
+        var songStats = eval( '(' + response + ')');
+        for (songId in songStats) {
+          songs[songId].opinion = songStats[songId].opinion;
+          songs[songId].viewcount = songStats[songId].viewcount;
+        }
+        showSongs();
+      });
+    } else {
+      showSongs();
     }
-    document.getElementById('statusBlock').innerHTML = '';
-    document.getElementById('controls').style.display = 'block';
-    playNext();
+    
+    function showSongs() {
+      // Create table of songs in playlist
+      for (var i = 0; i < playlist.length; i++) {
+        addSongRow(i);
+      }
+      document.getElementById('statusBlock').innerHTML = '';
+      document.getElementById('message').style.display = 'none';
+      document.getElementById('controls').style.display = 'block';
+      playNext();
+    }
   }
 }
 
 function addSongRow(songNum) {
-  var song = playlist[songNum];
+  var song = songs[(playlist[songNum])];
 
   var songRow = document.createElement('tr');
   songRow.id = 'song' + songNum;
@@ -326,7 +303,7 @@ function addSongRow(songNum) {
   titleCol.innerHTML = song.title;
   var likerCol = document.createElement('td');
   likerCol.style.width = '30px';
-  likerCol.appendChild(LIKER.createLikerMini(song.id));
+  likerCol.appendChild(new Liker(song, true));
 
   songRow.appendChild(artistCol);
   songRow.appendChild(titleCol);
@@ -344,7 +321,7 @@ function addSongRow(songNum) {
 function playNext() {
   // If we've already found the youtube Id, play it
   // Otherwise, search for the song and play it once found
-  var song = playlist[currentSong];
+  var song = songs[(playlist[currentSong])];
   if (song.youtubeId) {
 
     waitingForSong = false;
@@ -358,16 +335,25 @@ function playNext() {
       var height = document.getElementById('main').offsetHeight - 100;
       swfobject.embedSWF('http://www.youtube.com/v/' + song.youtubeId +
         '?autoplay=1&showsearch=0&rel=0&fs=1&enablejsapi=1&playerapiid=ytplayer',
-        'videoplayer', '90%', '80%', '8', null, null, params, atts);
+        'videoplayer', '99%', '80%', '8', null, null, params, atts);
       document.getElementById('controls').style.width = (width-10) + 'px';
-
     } else {
       youtubePlayer.loadVideoById(song.youtubeId);
     }
-
-    document.getElementById('liker').innerHTML = '';
-    document.getElementById('liker').appendChild(LIKER.createLiker(song.id));
-
+ 
+    
+    if (loggedIn) {
+      document.getElementById('liker').innerHTML = '';
+      document.getElementById('viewcount').innerHTML = '';
+      document.getElementById('liker').appendChild(new Liker(song));
+      if (song.viewcount) {
+        document.getElementById('viewcount').innerHTML += 'Viewed ' + song.viewcount + ' times';
+      } else {
+        document.getElementById('viewcount').innerHTML += 'First time viewing';
+      }
+      updateSongCount(song);
+    }
+    
     // Toggle CSS so current song shows as playing
     for (var i = 0; i < playlist.length; i++) {
       document.getElementById('song' + i).className = 'unselected';
@@ -389,9 +375,19 @@ function playNext() {
   }
 }
 
+function updateSongCount(song) {
+  var baseUrl = '/action/viewer/update_song_stats?';
+  var url = baseUrl + 'key_name=' + song.id + '&title=' + song.title + '&artist=' + song.artist;
+	AJAX.post(url + '&addview=true', null, function(response){
+    var songStats = eval( '(' + response + ')');
+    song.viewcount = songStats.viewcount;
+  });
+}
+
+
 // Searches for the song, and plays it if needed
 function searchForSong(songNum) {
-  var song = playlist[songNum];
+  var song = songs[(playlist[songNum])];
   var query = song.artist + ' ' + song.title;
 
   var key = 'youtube:' + query;
@@ -510,12 +506,10 @@ if (window.webkitNotifications) {
   }
 }
   </script>
-  </head>
-  <body>
+{% endblock %}
 
-<div id="container">
- <div id="header">
 
+{% block header %}
   <label>Enter URL to Rage playlist:
   <input id="urlInput" type="text"
   value="http://www.abc.net.au/rage/archive/s3032936.htm">
@@ -523,42 +517,48 @@ if (window.webkitNotifications) {
   <span id="statusBlock"></span>
   or
   <button onclick="onSearch()">SEARCH PLAYLISTS</button>
-
+   <div style="float:right"><a href="{{url}}">{{ url_linktext }}</a></div>
+   
   </label>
+{% endblock %}
 
- </div>
+{% block middle %}
+   
+   
    <div id="aside">
     <table>
-     <tbody id="playlistTable"></tbody>
+     <tbody id="playlistTable">
+      
+     </tbody>
     </table>
    </div>
 
    <div id="main">
-
+   
+   <div id="message" style="height: 100%;">
+    <div style="padding-top: 30%;">
+    {% ifequal loggedin "false" %}
+    New! You can now <a href="{{url}}">login</a> to remember what songs you like and contribute to the global stats.
+    {% endifequal %}
+    </div>
+   </div>
+   
     <div id="controls" style="display:none">
-      <div id="videoplayer"></div>
-      <div id="liker"></div>
+      <div id="videoplayer">
+      
+      </div>
+      <div id="stats">
+        <div id="liker"></div>
+        <div id="viewcount"></div>
+      </div>
       <button onclick="currentSong++; playNext()">NEXT</button>
     </div>
 
    </div>
+   
+{% endblock %}
 
-  <div id="footer">
-
-  <img src="img/ragetube.png">
-
-  <div style="padding-top: 30px; float:right">
-   Powered by <a href="http://open.dapper.net">Dapper</a>,
-   <a href="http://code.google.com/apis/youtube/player_parameters.html">Youtube Player API</a> and
-   <a href="http://code.google.com/apis/youtube/2.0/developers_guide_jsonc.html">Youtube Data API JSON-C</a>.
-   &nbsp;
-   <a href="http://github.com/pamelafox/ragetube/issues">Give feedback</a>
-   or even better,
-   <a href="http://github.com/pamelafox/ragetube/">Fork the code</a>
-  </div>
- </div>
-</div>
-
+{% block bodyend %}
 <script>
 function getHashParam(name) {
   var regexS = "[\\?&]" + name + "=([^&#]*)";
@@ -582,18 +582,4 @@ if (window.innerHeight) {
 document.getElementById('aside').style.height = height + 'px';
 document.getElementById('main').style.height = height + 'px';
 </script>
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-964209-9']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
- </body>
-</html>
+{% endblock %}

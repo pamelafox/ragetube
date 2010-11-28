@@ -64,13 +64,12 @@ var AJAX = (function(){
 	 return null;
 	};
 
-	function downloadUrl(url, callback) {
+	function downloadUrl(url, data, callback) {
 	 var status = -1;
 	 var request = createXmlHttpRequest();
 	 if (!request) {
 	   return false;
 	 }
-
 	 request.onreadystatechange = function() {
 	   if (request.readyState == 4) {
 		 try {
@@ -84,15 +83,16 @@ var AJAX = (function(){
 		 }
 	   }
 	 }
-	 request.open('GET', url, true);
+	 request.open('POST', url, true);
 	 try {
-	   request.send(null);
+     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	   request.send(data);
 	 } catch (e) {
 	   changeStatus(e);
 	 }
   }
 	
   return {
-    get: downloadUrl
+    post: downloadUrl
   };
 }());

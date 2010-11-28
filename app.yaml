@@ -11,7 +11,5 @@ handlers:
 - url: /js
   static_dir: js 
 
-- url: /
-  static_files: ragetube.html
-  upload: ragetube.html
-
+- url: /.*
+  script: main.py

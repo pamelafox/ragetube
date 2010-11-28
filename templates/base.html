@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8">
+  <title>{% block title %}{% endblock %}</title>
+  <link href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold&subset=latin" rel="stylesheet" type="text/css">
+  <script src="http://www.google.com/jsapi?key=AIzaSyA5m1Nc8ws2BbmPRwKu5gFradvD_hgq6G0" type="text/javascript"></script>
+  <script src="js/util.js"></script>
+  <style type="text/css">
+body {
+  font-family: 'Droid Sans', sans-serif;
+  background-color: #8de077;
+}
+
+#container
+{
+  margin: 0 auto;
+  width: 98%;
+  height: 98%;
+}
+
+#header
+{
+  margin-top: 10px;
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+  -moz-border-radius-topleft: 1em;
+  -moz-border-radius-topright: 1em;
+  background: black;
+  color: red;
+  padding: 20px;
+  font-weight: bold;
+}
+
+#header a {
+  color: red;
+}
+
+#content
+{
+  background-color: white;
+}
+
+#footer
+{
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+  -moz-border-radius-bottomleft: 1em;
+  -moz-border-radius-bottomright: 1em;
+  clear: left;
+  background: black;
+  color: red;
+  font-size: smaller;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#footer a {
+  color: red;
+}
+</style>
+    {% block head %}
+    {% endblock %}
+  </head>
+  <body>
+<div id="container">  
+ <div id="header">
+   {% block header %}{% endblock %}
+ </div>
+
+ <div id="middle" style="background-color: white">
+   {% block middle %}{% endblock %}
+ </div>
+ 
+ <div id="footer">
+  <img src="img/ragetube.png">
+
+  <div style="padding-top: 30px; float:right">
+    Powered by <a href="http://open.dapper.net">Dapper</a>,
+    <a href="http://code.google.com/apis/youtube/player_parameters.html">Youtube Player API</a> and
+    <a href="http://code.google.com/apis/youtube/2.0/developers_guide_jsonc.html">Youtube Data API JSON-C</a>.
+    &nbsp;
+    <a href="http://github.com/pamelafox/ragetube/issues">Give feedback</a>
+    or even better,
+    <a href="http://github.com/pamelafox/ragetube/">Fork the code</a>
+  </div>
+ </div>
+ 
+</div>
+
+{% block bodyend %}{% endblock %}
+  
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-964209-9']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  </body>
+</html>
