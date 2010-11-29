@@ -224,7 +224,7 @@ function onUrlEnter() {
       var status = json.dapper.status;
       if (status == 'OK') {
         processJSON(json);
-        lscache.set(key, json, 60*24);
+        lscache.set(key, json, 60*24*5);
       } else {
         alert('Sorry, we couldn\'t load that playlist for some reason.');
       }
@@ -322,6 +322,19 @@ function playNext() {
   // If we've already found the youtube Id, play it
   // Otherwise, search for the song and play it once found
   var song = songs[(playlist[currentSong])];
+  
+  var playableOpinions = {}
+  if (document.getElementById('play_yay').checked) playableOpinions['Yay'] = true;
+  if (document.getElementById('play_meh').checked) playableOpinions['Meh'] = true;
+  if (document.getElementById('play_nay').checked) playableOpinions['Nay'] = true;
+  console.log(song);
+  if (!(song.opinion && playableOpinions[song.opinion] ||
+      !song.opinion && document.getElementById('play_unrated').checked)) {
+    currentSong++;
+    playNext();
+    return;
+  }
+  
   if (song.youtubeId) {
 
     waitingForSong = false;
@@ -517,8 +530,19 @@ if (window.webkitNotifications) {
   <span id="statusBlock"></span>
   or
   <button onclick="onSearch()">SEARCH PLAYLISTS</button>
-   <div style="float:right"><a href="{{url}}">{{ url_linktext }}</a></div>
-   
+  &nbsp;
+  <div style="float:right"><a href="{{url}}">{{ url_linktext }}</a></div>
+  
+  {% ifequal loggedin "true" %}
+   <div style="font-size:smaller; margin-top: 5px;">
+   Play songs with opinion: 
+   <label>Yay <input type="checkbox" id="play_yay" checked></label>
+   <label>Meh <input type="checkbox" id="play_meh" checked></label>
+   <label>Nay <input type="checkbox" id="play_nay"></label>
+   <label>Unrated <input type="checkbox" id="play_unrated" checked></label>
+   </div>
+  {% endifequal %}
+  
   </label>
 {% endblock %}
 

@@ -4,6 +4,7 @@ from google.appengine.ext import db
 class Viewer(db.Model):
   # key is email
   user = db.UserProperty()
+ 
   
 class ViewerSong(db.Model):
   # keyname
