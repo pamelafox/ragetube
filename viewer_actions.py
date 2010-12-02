@@ -1,18 +1,23 @@
 from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
-from google.appengine.ext.db import Key
 
 from django.utils import simplejson
 
 import models
 
 class GetSongStats(webapp.RequestHandler):
+
+  def get(self):
+    self.get_song_stats()
+    
   def post(self):
-   #?key_name=sddf&key_name=dssfsd
-   user = users.get_current_user()
+    self.get_song_stats()
+    
+  def get_song_stats(self):
+   # Every request has ?key_name=sddf&key_name=dssfsd
    key_names = self.request.get_all('key_name')
-   songs = models.ViewerSong.get_by_key_name(key_names, parent=get_viewer())
+   songs = models.ViewerSong.get_by_key_name_for_viewer(key_names)
    song_dict = {}
    for song in songs:
      if song is not None:
@@ -29,12 +34,10 @@ class UpdateSongStats(webapp.RequestHandler):
   def update_song(self):
     # Every request has &key_name=&title=&artist=
     # Then requests can have either &opinion= or &addview=
-    viewer = get_viewer()
-    
     key_name = self.request.get('key_name')
-    song = models.ViewerSong.get_by_key_name(key_name, parent=viewer)
+    song = models.ViewerSong.get_by_key_name_for_viewer(key_name)
     if song is None:
-      song = models.ViewerSong(key_name=key_name, parent=viewer)
+      song = models.ViewerSong.make_with_key_name_for_viewer(key_name)
       song.title = self.request.get('title')
       song.artist = self.request.get('artist')
       
@@ -75,17 +78,6 @@ class UpdateSongStats(webapp.RequestHandler):
           global_song.opinioncount_nay -= 1
           
     elif viewcount:
-      global_song.viewcount += 1
+      models.Song.incr_viewcount(key_name)
     
     global_song.put()
-    
-    
-def get_viewer():
-  user = users.get_current_user()
-  # TODO: Do we have to retrieve this every time?
-  viewer = models.Viewer.get_by_key_name(user.email())
-  if viewer is None:
-    viewer = models.Viewer(key_name=user.email())
-    viewer.user = user
-    viewer.put()
-  return viewer

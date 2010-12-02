@@ -323,16 +323,17 @@ function playNext() {
   // Otherwise, search for the song and play it once found
   var song = songs[(playlist[currentSong])];
   
-  var playableOpinions = {}
-  if (document.getElementById('play_yay').checked) playableOpinions['Yay'] = true;
-  if (document.getElementById('play_meh').checked) playableOpinions['Meh'] = true;
-  if (document.getElementById('play_nay').checked) playableOpinions['Nay'] = true;
-  console.log(song);
-  if (!(song.opinion && playableOpinions[song.opinion] ||
-      !song.opinion && document.getElementById('play_unrated').checked)) {
-    currentSong++;
-    playNext();
-    return;
+  if (loggedIn) {
+    var playableOpinions = {}
+    if (document.getElementById('play_yay').checked) playableOpinions['Yay'] = true;
+    if (document.getElementById('play_meh').checked) playableOpinions['Meh'] = true;
+    if (document.getElementById('play_nay').checked) playableOpinions['Nay'] = true;
+    if (!(song.opinion && playableOpinions[song.opinion] ||
+        !song.opinion && document.getElementById('play_unrated').checked)) {
+      currentSong++;
+      playNext();
+      return;
+    }
   }
   
   if (song.youtubeId) {

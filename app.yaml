@@ -11,5 +11,9 @@ handlers:
 - url: /js
   static_dir: js 
 
+- url: /_ah/queue/deferred
+  script: $PYTHON_LIB/google/appengine/ext/deferred/handler.py
+  login: admin
+    
 - url: /.*
   script: main.py
