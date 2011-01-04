@@ -16,6 +16,8 @@ class GetSongStats(webapp.RequestHandler):
     
   def get_song_stats(self):
    # Every request has ?key_name=sddf&key_name=dssfsd
+   if not users.get_current_user():
+     return
    key_names = self.request.get_all('key_name')
    songs = models.ViewerSong.get_by_key_name_for_viewer(key_names)
    song_dict = {}
@@ -34,6 +36,9 @@ class UpdateSongStats(webapp.RequestHandler):
   def update_song(self):
     # Every request has &key_name=&title=&artist=
     # Then requests can have either &opinion= or &addview=
+    if not users.get_current_user():
+      return
+      
     key_name = self.request.get('key_name')
     song = models.ViewerSong.get_by_key_name_for_viewer(key_name)
     if song is None:

@@ -188,8 +188,8 @@ function onUrlEnter() {
   // Reset data and UI
   playlist.length = 0;
   songs = {};
-  currentSong = 0;
-  waitingForSong = false;
+  currentSong = -1;
+  stopWaiting();
   document.getElementById('playlistTable').innerHTML = '';
 
   playlistUrl = document.getElementById('urlInput').value;
@@ -255,7 +255,7 @@ function onUrlEnter() {
          break;
       }
 
-      song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '');
+      song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '').replace('+','plus').replace('&', 'and');
       songs[song.id] = song;
       playlist.push(song.id);
     }
@@ -270,8 +270,12 @@ function onUrlEnter() {
       AJAX.post(url, data, function(response){
         var songStats = eval( '(' + response + ')');
         for (songId in songStats) {
-          songs[songId].opinion = songStats[songId].opinion;
-          songs[songId].viewcount = songStats[songId].viewcount;
+          if (songs[songId]) {
+            songs[songId].opinion = songStats[songId].opinion;
+            songs[songId].viewcount = songStats[songId].viewcount;
+          } else {
+            console.log('Couldnt find ' + songId);
+          }
         }
         showSongs();
       });
@@ -287,6 +291,7 @@ function onUrlEnter() {
       document.getElementById('statusBlock').innerHTML = '';
       document.getElementById('message').style.display = 'none';
       document.getElementById('controls').style.display = 'block';
+      pickNextSong();
       playNext();
     }
   }
@@ -317,6 +322,20 @@ function addSongRow(songNum) {
   playlistTable.appendChild(songRow);
 }
 
+function pickNextSong() {
+  if (document.getElementById('shuffle').checked) {
+    do  {
+      nextSong = Math.round(Math.random() * (playlist.length-1));
+    } while (nextSong == currentSong)
+    currentSong = nextSong;
+  } else {
+    currentSong++;
+  }
+  
+  playNext();
+}
+
+  
 // Plays the next song and queues the one after that.
 function playNext() {
   // If we've already found the youtube Id, play it
@@ -330,16 +349,13 @@ function playNext() {
     if (document.getElementById('play_nay').checked) playableOpinions['Nay'] = true;
     if (!(song.opinion && playableOpinions[song.opinion] ||
         !song.opinion && document.getElementById('play_unrated').checked)) {
-      currentSong++;
-      playNext();
+      pickNextSong();
       return;
     }
   }
   
   if (song.youtubeId) {
-
-    waitingForSong = false;
-
+    stopWaiting();
     // If we haven't embedded the youtube player SWF yet, do it now
     // Otherwise, use the JS API to load the video
     if (!youtubePlayer) {
@@ -379,14 +395,24 @@ function playNext() {
     
     notify(song);
   } else {
-    waitingForSong = true;
+    beginWaiting();
     searchForSong(currentSong);
   }
 
-  // Queue next song
-  if (!playlist[currentSong + 1].youtubeId) {
+  // Queue next song if we're not in shuffle mode
+  if (!document.getElementById('shuffle').checked && !playlist[currentSong + 1].youtubeId) {
     searchForSong(currentSong + 1);
   }
+}
+
+function beginWaiting() {
+  document.getElementById('songloading').style.display = 'block';
+  waitingForSong = true;
+}
+
+function stopWaiting() {
+  document.getElementById('songloading').style.display = 'none';
+  waitingForSong = false;
 }
 
 function updateSongCount(song) {
@@ -434,6 +460,7 @@ function searchForSong(songNum) {
       song.youtubeId = json.data.items[0].id;
       song.thumbnail = json.data.items[0].thumbnail.sqDefault;
     }
+    
     // If the player is waiting for this song info, play it now
     if (waitingForSong) {
       playNext();
@@ -446,15 +473,19 @@ function onYouTubePlayerReady(playerId) {
   // Save player to global variable and add event listener
   youtubePlayer = document.getElementById('youtubeplayer');
   youtubePlayer.addEventListener('onStateChange', 'onYouTubePlayerStateChange');
+  youtubePlayer.addEventListener('onError', 'onYouTubePlayerError');
 }
 
 // Called whenever the embedded player changes state.
 function onYouTubePlayerStateChange(newState) {
   // If the video has reached the end, then play the next song
   if (newState == 0) {
-    currentSong++;
-    playNext();
+    pickNextSong();
   }
+}
+
+function onYouTubeError(error) {
+  window.console && console.log && console.log(error);
 }
 
 function noop() {}
@@ -526,7 +557,7 @@ if (window.webkitNotifications) {
 {% block header %}
   <label>Enter URL to Rage playlist:
   <input id="urlInput" type="text"
-  value="http://www.abc.net.au/rage/archive/s3032936.htm">
+  value="http://www.abc.net.au/rage/archive/s3104300.htm">
   <button onclick="onUrlEnter()">LOAD</button>
   <span id="statusBlock"></span>
   or
@@ -534,16 +565,17 @@ if (window.webkitNotifications) {
   &nbsp;
   <div style="float:right"><a href="{{url}}">{{ url_linktext }}</a></div>
   
+  <div style="font-size:smaller; margin-top: 5px;">
+   <label>Shuffle <input type="checkbox" id="shuffle"></label>
   {% ifequal loggedin "true" %}
-   <div style="font-size:smaller; margin-top: 5px;">
-   Play songs with opinion: 
+   &nbsp; Play songs with opinion: 
    <label>Yay <input type="checkbox" id="play_yay" checked></label>
    <label>Meh <input type="checkbox" id="play_meh" checked></label>
    <label>Nay <input type="checkbox" id="play_nay"></label>
    <label>Unrated <input type="checkbox" id="play_unrated" checked></label>
-   </div>
   {% endifequal %}
-  
+   </div>
+   
   </label>
 {% endblock %}
 
@@ -576,7 +608,8 @@ if (window.webkitNotifications) {
         <div id="liker"></div>
         <div id="viewcount"></div>
       </div>
-      <button onclick="currentSong++; playNext()">NEXT</button>
+      <button onclick="pickNextSong();">NEXT</button>
+      <img id="songloading" src="img/loading.gif" style="margin-left: 3px; margin-top: 2px; display:block">
     </div>
 
    </div>

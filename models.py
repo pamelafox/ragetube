@@ -1,5 +1,6 @@
 from datetime import datetime
 import time
+import re
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
@@ -23,7 +24,7 @@ class ViewerSong(db.Model):
             'artist': self.artist}
             
   @classmethod
-  def get_by_key_name_for_viewer(cls, key_names):   
+  def get_by_key_name_for_viewer(cls, key_names):  
     parent_key = Key.from_path('User', users.get_current_user().email())
     return cls.get_by_key_name(key_names, parent=parent_key)
      
@@ -68,6 +69,9 @@ class Song(db.Model):
     value = memcache.get('viewcount-' + name, cls.kind())
 
     # Subtract it from the memcached value
+    if not value:
+      return
+      
     memcache.decr('viewcount-' + name, value, cls.kind())
 
     # Store it to the counter
@@ -85,7 +89,7 @@ class Song(db.Model):
     """
     memcache.incr('viewcount-' + name, value, cls.kind())
     interval_num = get_interval_number(datetime.now(), interval)
-    task_name = '-'.join([cls.kind(), name.replace(' ', '-'), 'viewcount', str(interval), str(interval_num)])
+    task_name = '-'.join([cls.kind(), re.sub('[^a-zA-Z0-9-]*', '', name), 'viewcount', str(interval), str(interval_num)])
     try:
       deferred.defer(cls.flush_viewcount, name, _name=task_name)
     except (taskqueue.TaskAlreadyExistsError, taskqueue.TombstonedTaskError):
