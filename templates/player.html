@@ -273,8 +273,6 @@ function onUrlEnter() {
           if (songs[songId]) {
             songs[songId].opinion = songStats[songId].opinion;
             songs[songId].viewcount = songStats[songId].viewcount;
-          } else {
-            console.log('Couldnt find ' + songId);
           }
         }
         showSongs();
@@ -538,7 +536,7 @@ if (window.webkitNotifications) {
       var requestButton = document.createElement("button");
       requestButton.id = "notifications";
       requestButton.innerHTML = "Use desktop notifications";
-      document.getElementById("header").appendChild(requestButton);
+      document.getElementById("options").appendChild(requestButton);
     
       requestButton.addEventListener('click', function() {
         webkitNotifications.requestPermission(function() {
@@ -555,7 +553,7 @@ if (window.webkitNotifications) {
 
 
 {% block header %}
-  <label>Enter URL to Rage playlist:
+  <label for="urlInput">Enter URL to Rage playlist:</label>
   <input id="urlInput" type="text"
   value="http://www.abc.net.au/rage/archive/s3104300.htm">
   <button onclick="onUrlEnter()">LOAD</button>
@@ -565,7 +563,7 @@ if (window.webkitNotifications) {
   &nbsp;
   <div style="float:right"><a href="{{url}}">{{ url_linktext }}</a></div>
   
-  <div style="font-size:smaller; margin-top: 5px;">
+  <div id="options" style="font-size:smaller; margin-top: 5px;">
    <label>Shuffle <input type="checkbox" id="shuffle"></label>
   {% ifequal loggedin "true" %}
    &nbsp; Play songs with opinion: 
