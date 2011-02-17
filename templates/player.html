@@ -197,7 +197,7 @@ function onUrlEnter() {
 
   document.getElementById('statusBlock').innerHTML = 'Loading...';
 
-  var key = 'dapper:' + playlistUrl;
+  var key = 'parser:' + playlistUrl;
   var json = lscache.get(key);
   if (json) {
     processJSON(json);
@@ -206,61 +206,23 @@ function onUrlEnter() {
   }
 
   function fetchJSON() {
-    if (playlistUrl.indexOf('amazon.com') > -1) {
-      dappName = 'AmazonSoundtracksPlaylist';
-    } else if (playlistUrl.indexOf('playlist/') > -1) {
-      dappName = 'RageOldPlaylists';
-    } else {
-      dappName = 'RagePlaylist';
-    }
-
-    var dappUrl = 'http://open.dapper.net/transform.php';
-    var params = {
-      'dappName': dappName,
-      'transformer': 'JSON',
-      'applyToUrl': playlistUrl
-    }
-    JSONP.get(dappUrl, params, 'extraArg_callbackFunctionWrapper', function(json){
-      var status = json.dapper.status;
-      if (status == 'OK') {
-        processJSON(json);
-        lscache.set(key, json, 60*24*5);
-      } else {
-        alert('Sorry, we couldn\'t load that playlist for some reason.');
-      }
+    var url = '/action/parser/parse_playlist'
+    var data = 'url=' + playlistUrl;
+    AJAX.post(url, data, function(response) {
+      var playlistInfo = eval( '(' + response + ')');
+      processJSON(playlistInfo);
+      lscache.set(key, playlistInfo, 60*24*5);
     });
   }
 
   function processJSON(json) {
-    var groups = json.groups.songinfo;
-    for (var i = 0; i < groups.length; i++) {
-      var song = {};
-      switch (json.dapper.dappName) {
-       case 'RageOldPlaylists':
-         var allinfo = groups[i].allinfo[0].value;
-         var splitinfo = allinfo.split(' - ');
-         if (splitinfo.length == 1) continue;
-         // Remove numbers before song titles for countdowns
-         song.title = splitinfo[0].replace(/^[0-9]*\./, '');
-         // Remove labels after titles (without removing featuring)
-         song.artist = splitinfo[1].replace(/[A-Z][a-z]+/, '').replace(/EMI|BMG/, '');
-         break;
-       case 'RagePlaylist':
-         song.artist = groups[i].artist[0].value.split(' - ')[0];
-         song.title = groups[i].song[0].value;
-         break;
-       case 'AmazonSoundtracksPlaylist':
-         song.artist = groups[i].artist[0].value.replace('OST', '');
-         song.title = groups[i].title[0].value;
-         break;
-      }
-
+    for (var i = 0; i < json.songs.length; i++) {
+      var song = json.songs[i];
       song.id = (song.artist + '-' + song.title).toLowerCase().replace(' ', '').replace('+','plus').replace('&', 'and');
       songs[song.id] = song;
       playlist.push(song.id);
     }
 
-    
     if (loggedIn) {
       var url = '/action/viewer/get_song_stats';
       var data = '';
@@ -428,7 +390,7 @@ function searchForSong(songNum) {
   var song = songs[(playlist[songNum])];
   var query = song.artist + ' ' + song.title;
 
-  var key = 'youtube:' + query;
+  var key = 'youtube2:' + query;
   var json = lscache.get(key);
   if (json) {
     processJSON(json);
@@ -442,7 +404,7 @@ function searchForSong(songNum) {
       'v': '2',
       'alt': 'jsonc',
       'format': '5',
-      'q': query
+      'q': encodeURIComponent(query)
     }
     JSONP.get(searchUrl, params, null, function(json) {
       processJSON(json);
@@ -591,10 +553,17 @@ if (window.webkitNotifications) {
    <div id="main">
    
    <div id="message" style="height: 100%;">
-    <div style="padding-top: 30%;">
+    <div style="padding-top: 20%;">
+    <p>
+    New! You can now listen to Triple J Hottest 100 playlists - start playing
+    <a href="javascript:void(0);" onclick="playUrl('http://www.abc.net.au/triplej/hottest100/10/countdown/cd_list.htm');">2010</a>,
+    <a href="javascript:void(0);" onclick="playUrl('http://www.abc.net.au/triplej/hottest100_alltime/countdown/cd_list.htm');">2009</a>,
+    or <a href="http://www.abc.net.au/triplej/hottest100_08/history.htm" target="_blank">browse for older lists</a>.
+    </p>
     {% ifequal loggedin "false" %}
-    New! You can now <a href="{{url}}">login</a> to remember what songs you like and contribute to the global stats.
+    If you want RageTube to remember what songs you like, make sure to <a href="{{url}}">login</a>.
     {% endifequal %}
+    
     </div>
    </div>
    
@@ -623,11 +592,13 @@ function getHashParam(name) {
   return (results === null ? "" : results[1]);
 }
 
-var url = getHashParam('url');
-if (url) {
+function playUrl(url) {
   document.getElementById('urlInput').value = url;
   onUrlEnter();
 }
+
+var url = getHashParam('url');
+if (url) playUrl(url);
 
 var offset = 180;
 if (window.innerHeight) {

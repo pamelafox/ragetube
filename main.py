@@ -9,12 +9,14 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 
 import viewer_actions
 import global_actions
+import parser_actions
 import pages
 
 def main():
   application = webapp.WSGIApplication([
       ('/', pages.Player),
       ('/stats', pages.Stats),
+      ('/action/parser/parse_playlist', parser_actions.ParsePlaylist),
       ('/action/viewer/get_song_stats', viewer_actions.GetSongStats),
       ('/action/viewer/update_song_stats', viewer_actions.UpdateSongStats),
       ('/action/global/get_song_stats', global_actions.GetSongStats),
